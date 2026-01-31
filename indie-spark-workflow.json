@@ -1,0 +1,436 @@
+{
+  "name": "Indie Spark - Daily Game Ideas (AI Agent)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily 7AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/CozyPlaces/hot.json?limit=10",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
+            }
+          ]
+        }
+      },
+      "id": "fetch-cozyplaces",
+      "name": "Fetch r/CozyPlaces",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 100],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://www.reddit.com/r/TinyHouses/hot.json?limit=5",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
+            }
+          ]
+        }
+      },
+      "id": "fetch-tinyhouses",
+      "name": "Fetch r/TinyHouses",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "fetch-nasa",
+      "name": "Fetch NASA APOD",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://gutendex.com/books/?languages=en&page={{ Math.floor(Math.random() * 100) + 1 }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "fetch-gutenberg",
+      "name": "Fetch Gutenberg Books",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 400],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://itch.io/jams/upcoming.json",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "fetch-itchio",
+      "name": "Fetch itch.io Jams",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 500],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process r/CozyPlaces posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A quiet reading nook by a rain-streaked window',\n      image_url: '',\n      source_url: 'https://reddit.com/r/CozyPlaces',\n      source: 'r/CozyPlaces (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 4).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/CozyPlaces'\n  }\n}));"
+      },
+      "id": "process-cozyplaces",
+      "name": "Process CozyPlaces",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 100]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process r/TinyHouses posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A compact treehouse studio with big windows',\n      image_url: '',\n      source_url: 'https://reddit.com/r/TinyHouses',\n      source: 'r/TinyHouses (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 2).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/TinyHouses'\n  }\n}));"
+      },
+      "id": "process-tinyhouses",
+      "name": "Process TinyHouses",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process NASA APOD\nconst apod = $input.first().json;\n\nif (!apod || !apod.title) {\n  return [{\n    json: {\n      type: 'nature_science',\n      title: 'Bioluminescent plankton lighting up ocean waves',\n      description: 'Tiny organisms create magical light shows in the darkness of the sea.',\n      image_url: '',\n      source_url: 'https://apod.nasa.gov/',\n      source: 'NASA (fallback)'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    type: 'nature_science',\n    title: apod.title,\n    description: apod.explanation ? apod.explanation.substring(0, 250) + '...' : '',\n    image_url: apod.url || '',\n    source_url: 'https://apod.nasa.gov/',\n    source: 'NASA APOD'\n  }\n}];"
+      },
+      "id": "process-nasa",
+      "name": "Process NASA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Gutenberg books\nconst data = $input.first().json;\n\nif (!data || !data.results || data.results.length === 0) {\n  return [{\n    json: {\n      type: 'narrative_hook',\n      title: 'The Lighthouse Keeper\\'s Daughter',\n      author: 'Anonymous',\n      source_url: 'https://www.gutenberg.org/',\n      source: 'Gutenberg (fallback)'\n    }\n  }];\n}\n\nconst books = data.results\n  .filter(b => b.title && b.title.length < 80)\n  .sort(() => Math.random() - 0.5)\n  .slice(0, 2);\n\nreturn books.map(book => ({\n  json: {\n    type: 'narrative_hook',\n    title: book.title,\n    author: book.authors && book.authors[0] ? book.authors[0].name : 'Unknown',\n    source_url: `https://www.gutenberg.org/ebooks/${book.id}`,\n    source: 'Project Gutenberg'\n  }\n}));"
+      },
+      "id": "process-gutenberg",
+      "name": "Process Gutenberg",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process itch.io game jams\nconst data = $input.first().json;\n\nif (!data || !data.jams || data.jams.length === 0) {\n  return [{\n    json: {\n      type: 'game_jam',\n      title: 'Cozy Jam 2025',\n      theme: 'Comfort',\n      url: 'https://itch.io/jams',\n      source: 'itch.io (fallback)'\n    }\n  }];\n}\n\nconst jams = data.jams.slice(0, 3);\n\nreturn jams.map(jam => ({\n  json: {\n    type: 'game_jam',\n    title: jam.title || 'Unnamed Jam',\n    theme: jam.theme || 'Open theme',\n    url: jam.url || 'https://itch.io/jams',\n    source: 'itch.io'\n  }\n}));"
+      },
+      "id": "process-itchio",
+      "name": "Process itch.io",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate random board game mechanics\nconst mechanics = [\n  { name: 'Tile Placement', desc: 'Players place tiles to build a shared map or personal tableau' },\n  { name: 'Resource Management', desc: 'Gather and spend resources strategically' },\n  { name: 'Pattern Building', desc: 'Arrange elements to match or create patterns' },\n  { name: 'Push Your Luck', desc: 'Risk/reward decisions - keep going or stop?' },\n  { name: 'Hand Management', desc: 'Optimize a limited hand of cards or items' },\n  { name: 'Worker Placement', desc: 'Assign workers to limited action spaces' },\n  { name: 'Deck Building', desc: 'Gradually improve your deck during play' },\n  { name: 'Pick and Deliver', desc: 'Collect items and transport them to destinations' },\n  { name: 'Route Building', desc: 'Create paths or networks between points' },\n  { name: 'Set Collection', desc: 'Gather groups of matching items for bonuses' },\n  { name: 'Engine Building', desc: 'Create combos that generate increasing returns' },\n  { name: 'Area Majority', desc: 'Control regions by having the most presence' },\n  { name: 'Drafting', desc: 'Select items from a shared pool in turns' },\n  { name: 'Memory', desc: 'Remember hidden information to make better choices' },\n  { name: 'Real-Time', desc: 'Actions happen simultaneously without turns' }\n];\n\nconst shuffled = mechanics.sort(() => Math.random() - 0.5);\nconst selected = shuffled.slice(0, 3);\n\nreturn selected.map(m => ({\n  json: {\n    type: 'mechanic',\n    mechanic: m.name,\n    description: m.desc,\n    source: 'BoardGameGeek Mechanics',\n    source_url: 'https://boardgamegeek.com/browse/boardgamemechanic'\n  }\n}));"
+      },
+      "id": "generate-mechanics",
+      "name": "Generate Mechanics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [550, 600]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "merge-all",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [850, 350]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the user prompt from all ingredients\nconst ingredients = $input.all().map(item => item.json);\n\nconst cozyItems = ingredients.filter(i => i.type === 'cozy_aesthetic');\nconst mechanics = ingredients.filter(i => i.type === 'mechanic');\nconst scienceItems = ingredients.filter(i => i.type === 'nature_science');\nconst narrativeItems = ingredients.filter(i => i.type === 'narrative_hook');\nconst jams = ingredients.filter(i => i.type === 'game_jam');\n\nconst userPrompt = `TODAY'S INSPIRATION INGREDIENTS:\n\n🏡 COZY SETTINGS (visual inspiration):\n${cozyItems.map(c => `- \"${c.title}\" [from ${c.source}]`).join('\\n')}\n\n🎲 GAME MECHANICS TO CONSIDER:\n${mechanics.map(m => `- ${m.mechanic}: ${m.description || ''}`).join('\\n')}\n\n🔬 SCIENCE/NATURE HOOK:\n${scienceItems.map(s => `- ${s.title}: ${s.description || ''}`).join('\\n')}\n\n📚 NARRATIVE INSPIRATION (book titles for mood/theme):\n${narrativeItems.map(n => `- \"${n.title}\" by ${n.author}`).join('\\n')}\n\n🎮 ACTIVE GAME JAMS (optional themes to consider):\n${jams.map(j => `- \"${j.title}\" - Theme: ${j.theme}`).join('\\n')}\n\n---\n\nUsing these ingredients, generate EXACTLY 3 unique cozy game ideas now.`;\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    raw_ingredients: ingredients\n  }\n}];"
+      },
+      "id": "build-prompt",
+      "name": "Build User Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1100, 350]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a creative game designer assistant for a solo indie developer who makes cozy, experimental games. Your job is to spark ideas that are achievable for one person but still feel fresh and unique.\n\nFor each game idea, use this EXACT format:\n\n## 💡 [NUMBER]. [CATCHY GAME NAME]\n\n**The Pitch:** [One compelling sentence that would hook a player]\n\n**Setting:** [The cozy world/location, inspired by the visual ingredients provided]\n\n**Core Loop:** [What does the player actually DO? Be specific about the main mechanic]\n\n**The Twist:** [What makes this experimental or unique? What hasn't been done before?]\n\n**Solo Dev Reality Check:** [Why is this achievable in 1-3 months for one developer?]\n\n---\n\nIMPORTANT RULES:\n1. Keep it COZY - no combat, no death, no time pressure, no stress\n2. Keep it EXPERIMENTAL - unusual perspectives, mechanics, or themes\n3. Keep it SMALL - realistic scope for a solo developer\n4. Each idea must be DISTINCTLY DIFFERENT from the others\n5. Be SPECIFIC - avoid generic descriptions like \"relaxing gameplay\"\n6. Draw from MULTIPLE ingredients - combine them in unexpected ways\n7. The game should feel like something NEW, not a clone of existing games"
+        },
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}"
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [1350, 350]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "options": {
+          "temperature": 0.9,
+          "maxOutputTokens": 3000,
+          "topP": 0.95
+        }
+      },
+      "id": "gemini-chat-model",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1350, 550],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Google Gemini (PaLM) API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process AI Agent response\nconst agentResponse = $input.first().json;\nconst promptData = $('Build User Prompt').first().json;\n\nlet ideas = '';\n\ntry {\n  // AI Agent returns the response in 'output' field\n  if (agentResponse.output) {\n    ideas = agentResponse.output;\n  } else if (agentResponse.text) {\n    ideas = agentResponse.text;\n  } else if (typeof agentResponse === 'string') {\n    ideas = agentResponse;\n  } else {\n    // Try to find any text content\n    ideas = JSON.stringify(agentResponse, null, 2);\n  }\n} catch (e) {\n  ideas = `## ⚠️ Processing Error\\n\\n${e.message}\\n\\nHere are your raw ingredients to spark your own ideas:\\n\\n` + \n    promptData.raw_ingredients.map(i => `- ${i.title || i.mechanic || i.theme}`).join('\\n');\n}\n\nreturn [{\n  json: {\n    ideas: ideas,\n    sources: promptData.raw_ingredients,\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "process-response",
+      "name": "Process AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 350]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate beautiful HTML email\nconst data = $input.first().json;\nconst ideas = data.ideas;\nconst sources = data.sources;\n\nconst date = new Date().toLocaleDateString('en-US', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\n// Convert markdown-ish formatting to HTML\nlet formattedIdeas = ideas\n  .replace(/## 💡/g, '<h2 class=\"idea-title\">💡')\n  .replace(/## ⚠️/g, '<h2 class=\"warning\">⚠️')\n  .replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>')\n  .replace(/\\n\\n/g, '</p><p>')\n  .replace(/\\n---\\n/g, '<hr>')\n  .replace(/\\n/g, '<br>');\n\n// Close any unclosed h2 tags\nformattedIdeas = formattedIdeas.replace(/<h2 class=\"idea-title\">💡([^<]+)<br>/g, '<h2 class=\"idea-title\">💡$1</h2><p>');\nformattedIdeas = formattedIdeas.replace(/<h2 class=\"warning\">⚠️([^<]+)<br>/g, '<h2 class=\"warning\">⚠️$1</h2><p>');\n\n// Build source links grouped by type\nconst cozy = sources.filter(s => s.type === 'cozy_aesthetic');\nconst science = sources.filter(s => s.type === 'nature_science');\nconst narrative = sources.filter(s => s.type === 'narrative_hook');\nconst mechanics = sources.filter(s => s.type === 'mechanic');\nconst jams = sources.filter(s => s.type === 'game_jam');\n\nconst sourceSection = (title, items, emoji) => {\n  if (items.length === 0) return '';\n  const links = items\n    .filter(s => s.source_url)\n    .map(s => {\n      const label = s.title || s.mechanic || s.theme || s.source;\n      return `<li><a href=\"${s.source_url}\">${label}</a></li>`;\n    })\n    .join('');\n  return `<div class=\"source-group\"><strong>${emoji} ${title}:</strong><ul>${links}</ul></div>`;\n};\n\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Indie Spark - ${date}</title>\n  <style>\n    * { box-sizing: border-box; }\n    \n    body {\n      font-family: 'Georgia', 'Times New Roman', serif;\n      max-width: 650px;\n      margin: 0 auto;\n      padding: 20px;\n      background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);\n      color: #2d2d2d;\n      line-height: 1.7;\n    }\n    \n    .header {\n      text-align: center;\n      border-bottom: 3px solid #c9b99a;\n      padding-bottom: 25px;\n      margin-bottom: 35px;\n    }\n    \n    .header h1 {\n      color: #5d4e37;\n      margin: 0;\n      font-size: 32px;\n      letter-spacing: 1px;\n    }\n    \n    .header .tagline {\n      color: #6b8e6b;\n      font-style: italic;\n      margin-top: 8px;\n      font-size: 16px;\n    }\n    \n    .header .date {\n      color: #8b7355;\n      font-size: 14px;\n      margin-top: 12px;\n    }\n    \n    .ideas {\n      background: white;\n      border-radius: 16px;\n      padding: 30px;\n      box-shadow: 0 4px 20px rgba(93, 78, 55, 0.08);\n      border: 1px solid #e8dfd5;\n    }\n    \n    .ideas h2.idea-title {\n      color: #5d4e37;\n      font-size: 22px;\n      margin-top: 35px;\n      margin-bottom: 15px;\n      padding-bottom: 10px;\n      border-bottom: 2px solid #e8dfd5;\n    }\n    \n    .ideas h2.idea-title:first-child {\n      margin-top: 0;\n    }\n    \n    .ideas h2.warning {\n      color: #b8860b;\n    }\n    \n    .ideas p {\n      margin: 0 0 12px 0;\n    }\n    \n    .ideas strong {\n      color: #6b8e6b;\n    }\n    \n    .ideas hr {\n      border: none;\n      height: 1px;\n      background: linear-gradient(to right, transparent, #c9b99a, transparent);\n      margin: 30px 0;\n    }\n    \n    .sources {\n      margin-top: 40px;\n      padding: 25px;\n      background: linear-gradient(135deg, #f9f6f1 0%, #f0ebe3 100%);\n      border-radius: 12px;\n      border: 1px solid #e0d6c8;\n    }\n    \n    .sources h3 {\n      margin: 0 0 20px 0;\n      color: #5d4e37;\n      font-size: 18px;\n      border-bottom: 1px solid #d4c9b9;\n      padding-bottom: 10px;\n    }\n    \n    .source-group {\n      margin-bottom: 15px;\n    }\n    \n    .source-group strong {\n      color: #6b5d4d;\n      font-size: 14px;\n    }\n    \n    .sources ul {\n      margin: 8px 0 0 0;\n      padding-left: 20px;\n    }\n    \n    .sources li {\n      margin-bottom: 4px;\n      font-size: 14px;\n    }\n    \n    .sources a {\n      color: #6b8e6b;\n      text-decoration: none;\n    }\n    \n    .sources a:hover {\n      text-decoration: underline;\n    }\n    \n    .footer {\n      text-align: center;\n      margin-top: 35px;\n      padding-top: 25px;\n      border-top: 2px solid #e8dfd5;\n      color: #a99b8a;\n      font-size: 13px;\n    }\n    \n    .footer p {\n      margin: 5px 0;\n    }\n    \n    .footer .tip {\n      background: #f5f0e8;\n      padding: 12px 18px;\n      border-radius: 8px;\n      margin-top: 15px;\n      font-style: italic;\n    }\n    \n    @media (max-width: 600px) {\n      body { padding: 15px; }\n      .header h1 { font-size: 26px; }\n      .ideas { padding: 20px; }\n      .ideas h2.idea-title { font-size: 18px; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>🌿 Indie Spark</h1>\n    <div class=\"tagline\">Daily cozy game ideas for solo devs</div>\n    <div class=\"date\">${date}</div>\n  </div>\n\n  <div class=\"ideas\">\n    ${formattedIdeas}\n  </div>\n\n  <div class=\"sources\">\n    <h3>📚 Today's Inspiration Sources</h3>\n    ${sourceSection('Cozy Vibes', cozy, '🏡')}\n    ${sourceSection('Science & Nature', science, '🔬')}\n    ${sourceSection('Narrative Hooks', narrative, '📖')}\n    ${sourceSection('Game Mechanics', mechanics, '🎲')}\n    ${sourceSection('Active Jams', jams, '🎮')}\n  </div>\n\n  <div class=\"footer\">\n    <p>Made with ☕ by your n8n Indie Spark workflow</p>\n    <div class=\"tip\">💡 Tip: Reply to this email with ⭐ to save ideas you love!</div>\n  </div>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    html: html,\n    subject: `🌿 Indie Spark — ${date}`,\n    plain_text: ideas.replace(/<[^>]+>/g, ''),\n    date: date\n  }\n}];"
+      },
+      "id": "build-email",
+      "name": "Build HTML Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 350]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM || 'indiespark@yourdomain.com' }}",
+        "toEmail": "={{ $env.RECIPIENT_EMAIL || 'your-email@gmail.com' }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [2100, 350],
+      "credentials": {
+        "smtp": {
+          "id": "REPLACE_WITH_YOUR_SMTP_CREDENTIAL_ID",
+          "name": "SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 500]
+    }
+  ],
+  "connections": {
+    "Daily 7AM Trigger": {
+      "main": [
+        [
+          { "node": "Fetch r/CozyPlaces", "type": "main", "index": 0 },
+          { "node": "Fetch r/TinyHouses", "type": "main", "index": 0 },
+          { "node": "Fetch NASA APOD", "type": "main", "index": 0 },
+          { "node": "Fetch Gutenberg Books", "type": "main", "index": 0 },
+          { "node": "Fetch itch.io Jams", "type": "main", "index": 0 },
+          { "node": "Generate Mechanics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Manual Test Trigger": {
+      "main": [
+        [
+          { "node": "Fetch r/CozyPlaces", "type": "main", "index": 0 },
+          { "node": "Fetch r/TinyHouses", "type": "main", "index": 0 },
+          { "node": "Fetch NASA APOD", "type": "main", "index": 0 },
+          { "node": "Fetch Gutenberg Books", "type": "main", "index": 0 },
+          { "node": "Fetch itch.io Jams", "type": "main", "index": 0 },
+          { "node": "Generate Mechanics", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Fetch r/CozyPlaces": {
+      "main": [
+        [{ "node": "Process CozyPlaces", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch r/TinyHouses": {
+      "main": [
+        [{ "node": "Process TinyHouses", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch NASA APOD": {
+      "main": [
+        [{ "node": "Process NASA", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Gutenberg Books": {
+      "main": [
+        [{ "node": "Process Gutenberg", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch itch.io Jams": {
+      "main": [
+        [{ "node": "Process itch.io", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process CozyPlaces": {
+      "main": [
+        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process TinyHouses": {
+      "main": [
+        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process NASA": {
+      "main": [
+        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process Gutenberg": {
+      "main": [
+        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Process itch.io": {
+      "main": [
+        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Generate Mechanics": {
+      "main": [
+        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [{ "node": "Build User Prompt", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build User Prompt": {
+      "main": [
+        [{ "node": "AI Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [{ "node": "Process AI Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "Process AI Response": {
+      "main": [
+        [{ "node": "Build HTML Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build HTML Email": {
+      "main": [
+        [{ "node": "Send Email", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "game-dev",
+      "createdAt": "2025-01-31T00:00:00.000Z",
+      "updatedAt": "2025-01-31T00:00:00.000Z"
+    },
+    {
+      "name": "ai-agent",
+      "createdAt": "2025-01-31T00:00:00.000Z",
+      "updatedAt": "2025-01-31T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 2,
+  "pinData": {},
+  "versionId": "2"
+}
