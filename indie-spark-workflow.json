@@ -3,32 +3,210 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "0 7 * * *"
-            }
-          ]
-        }
+        "jsCode": "// Process Rijksmuseum artwork\nconst data = $input.first().json;\n\nif (!data || !data.artObjects || data.artObjects.length === 0) {\n  const artworks = [\n    { title: 'The Milkmaid', artist: 'Johannes Vermeer', date: 'c. 1660', medium: 'Oil on canvas', url: 'https://www.rijksmuseum.nl/en/collection/SK-A-2344' },\n    { title: 'The Night Watch', artist: 'Rembrandt van Rijn', date: '1642', medium: 'Oil on canvas', url: 'https://www.rijksmuseum.nl/en/collection/SK-C-5' },\n    { title: 'View of Houses in Delft', artist: 'Johannes Vermeer', date: 'c. 1658', medium: 'Oil on canvas', url: 'https://www.rijksmuseum.nl/en/collection/SK-A-2860' },\n    { title: 'Winter Landscape with Ice Skaters', artist: 'Hendrick Avercamp', date: 'c. 1608', medium: 'Oil on panel', url: 'https://www.rijksmuseum.nl/en/collection/SK-A-1718' },\n    { title: 'The Threatened Swan', artist: 'Jan Asselijn', date: 'c. 1650', medium: 'Oil on canvas', url: 'https://www.rijksmuseum.nl/en/collection/SK-A-4' }\n  ];\n  const pick = artworks[Math.floor(Math.random() * artworks.length)];\n  return [{\n    json: {\n      type: 'artwork',\n      title: pick.title,\n      artist: pick.artist,\n      date: pick.date,\n      medium: pick.medium,\n      image_url: '',\n      source_url: pick.url,\n      source: 'Rijksmuseum (fallback)'\n    }\n  }];\n}\n\nconst art = data.artObjects[0];\n\nreturn [{\n  json: {\n    type: 'artwork',\n    title: art.title || 'Untitled',\n    artist: art.principalOrFirstMaker || 'Unknown',\n    date: art.longTitle || '',\n    medium: '',\n    image_url: art.webImage ? art.webImage.url : '',\n    source_url: art.links && art.links.web ? art.links.web : 'https://www.rijksmuseum.nl/',\n    source: 'Rijksmuseum'\n  }\n}];"
       },
-      "id": "schedule-trigger",
-      "name": "Daily 7AM Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [0, 300]
+      "id": "bf6e0fab-3a2d-4bd0-8854-22d821dc9572",
+      "name": "Process Rijksmuseum",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        2544
+      ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://www.reddit.com/r/CozyPlaces/hot.json?limit=10",
+        "jsCode": "// Process Wikiquote random topic\nconst data = $input.first().json;\n\nif (!data || !data.query || !data.query.random || data.query.random.length === 0) {\n  const topics = [\n    { title: 'Kintsugi', description: 'The Japanese art of repairing broken pottery with gold \u2014 finding beauty in imperfection and mending.' },\n    { title: 'Hygge', description: 'The Danish concept of cozy contentment and well-being through simple pleasures.' },\n    { title: 'Shinrin-yoku', description: 'Japanese forest bathing \u2014 immersing oneself in the atmosphere of the forest for healing.' },\n    { title: 'Wabi-sabi', description: 'The Japanese worldview centered on the acceptance of transience and imperfection.' },\n    { title: 'Fika', description: 'The Swedish tradition of taking a break for coffee and pastry with friends.' },\n    { title: 'Bioluminescence', description: 'The production of light by living organisms, turning the dark ocean into a galaxy.' },\n    { title: 'Solarpunk', description: 'An optimistic vision of the future that imagines communities living in harmony with nature and technology.' }\n  ];\n  const pick = topics[Math.floor(Math.random() * topics.length)];\n  return [{\n    json: {\n      type: 'mythology',\n      title: pick.title,\n      description: pick.description,\n      source_url: `https://en.wikiquote.org/wiki/${encodeURIComponent(pick.title)}`,\n      source: 'Wikiquote (fallback)'\n    }\n  }];\n}\n\nconst topic = data.query.random[0];\n\nreturn [{\n  json: {\n    type: 'mythology',\n    title: topic.title || 'Unknown Topic',\n    description: `A Wikiquote page about \"${topic.title}\" \u2014 use this as thematic or narrative inspiration.`,\n    source_url: `https://en.wikiquote.org/wiki/${encodeURIComponent(topic.title)}`,\n    source: 'Wikiquote'\n  }\n}];"
+      },
+      "id": "058c0db6-56df-43db-827c-b83305cffa6f",
+      "name": "Process Wikiquote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process r/MiniWorlds posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A tiny mossy world growing inside a fallen log',\n      image_url: '',\n      source_url: 'https://reddit.com/r/Miniworlds',\n      source: 'r/MiniWorlds (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 2).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/MiniWorlds'\n  }\n}));"
+      },
+      "id": "86466a83-5739-439f-aa0b-4a2797e7dc5c",
+      "name": "Process MiniWorlds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        2160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process r/Cottagecore posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A wildflower meadow beside a stone cottage with a thatched roof',\n      image_url: '',\n      source_url: 'https://reddit.com/r/Cottagecore',\n      source: 'r/Cottagecore (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 2).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/Cottagecore'\n  }\n}));"
+      },
+      "id": "994bba7a-141c-4507-a768-e8f4beeb5242",
+      "name": "Process Cottagecore",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1968
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Color API palette\nconst data = $input.first().json;\n\nif (!data || !data.colors || data.colors.length === 0) {\n  const palettes = [\n    { name: 'Autumn Harvest', colors: ['#8B4513', '#D2691E', '#F4A460', '#DEB887'], names: ['Saddle Brown', 'Chocolate', 'Sandy Brown', 'Burlywood'], mood: 'warm earth tones' },\n    { name: 'Forest Canopy', colors: ['#2D5A27', '#4A7C3F', '#8FBC8F', '#C8E6C9'], names: ['Forest Green', 'Fern', 'Dark Sea Green', 'Pale Mint'], mood: 'deep green serenity' },\n    { name: 'Ocean Twilight', colors: ['#1A237E', '#3949AB', '#7986CB', '#C5CAE9'], names: ['Deep Indigo', 'Royal Blue', 'Soft Periwinkle', 'Lavender Mist'], mood: 'calm deep-water blues' },\n    { name: 'Desert Rose', colors: ['#BF360C', '#E6845E', '#FFAB91', '#FFF3E0'], names: ['Burnt Sienna', 'Terra Cotta', 'Peach', 'Cream'], mood: 'warm sunset over sand dunes' },\n    { name: 'Lavender Fields', colors: ['#6A1B9A', '#AB47BC', '#CE93D8', '#F3E5F5'], names: ['Deep Purple', 'Orchid', 'Plum', 'Thistle'], mood: 'soft purple dreamscape' },\n    { name: 'Morning Frost', colors: ['#546E7A', '#90A4AE', '#CFD8DC', '#ECEFF1'], names: ['Blue Grey', 'Cadet Grey', 'Silver Mist', 'Ghost White'], mood: 'cool winter morning quiet' }\n  ];\n  const pick = palettes[Math.floor(Math.random() * palettes.length)];\n  return [{\n    json: {\n      type: 'color_palette',\n      palette_name: pick.name,\n      colors: pick.colors,\n      color_names: pick.names,\n      mood: pick.mood,\n      source_url: 'https://www.thecolorapi.com/',\n      source: 'The Color API (fallback)'\n    }\n  }];\n}\n\nconst colors = data.colors.map(c => c.hex ? c.hex.value : '#000000');\nconst colorNames = data.colors.map(c => c.name ? c.name.value : 'Unknown');\nconst seedName = data.seed && data.seed.name ? data.seed.name.value : 'Custom';\nconst mode = data.mode || 'analogic';\n\nreturn [{\n  json: {\n    type: 'color_palette',\n    palette_name: `${seedName} (${mode})`,\n    colors: colors,\n    color_names: colorNames,\n    mood: `A ${mode} palette based on ${seedName}`,\n    source_url: 'https://www.thecolorapi.com/',\n    source: 'The Color API'\n  }\n}];"
+      },
+      "id": "5769e4ce-594f-42af-909b-762729e0c6e5",
+      "name": "Process Color Palette",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1776
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process ZenQuotes response\nconst data = $input.first().json;\n\n// ZenQuotes returns an array\nconst quotes = Array.isArray(data) ? data : [data];\n\nif (!quotes || quotes.length === 0 || !quotes[0].q) {\n  return [{\n    json: {\n      type: 'quote',\n      text: 'In every walk with nature one receives far more than he seeks.',\n      author: 'John Muir',\n      source_url: 'https://zenquotes.io/',\n      source: 'ZenQuotes (fallback)'\n    }\n  }];\n}\n\nconst quote = quotes[0];\n\nreturn [{\n  json: {\n    type: 'quote',\n    text: quote.q,\n    author: quote.a || 'Unknown',\n    source_url: 'https://zenquotes.io/',\n    source: 'ZenQuotes'\n  }\n}];"
+      },
+      "id": "55da9bfd-5854-488d-9768-6e35ff42c81d",
+      "name": "Process ZenQuote",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1584
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Open-Meteo weather into a mood descriptor\nconst data = $input.first().json;\n\nconst weatherCodes = {\n  0: 'Clear sky',\n  1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',\n  45: 'Foggy', 48: 'Depositing rime fog',\n  51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',\n  61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',\n  71: 'Slight snowfall', 73: 'Moderate snowfall', 75: 'Heavy snowfall',\n  77: 'Snow grains',\n  80: 'Slight rain showers', 81: 'Moderate rain showers', 82: 'Violent rain showers',\n  85: 'Slight snow showers', 86: 'Heavy snow showers',\n  95: 'Thunderstorm', 96: 'Thunderstorm with slight hail', 99: 'Thunderstorm with heavy hail'\n};\n\nconst moodMap = {\n  0: 'sunny and warm \u2014 outdoor exploration, gardening, picnics',\n  1: 'bright with wisps of cloud \u2014 open fields, kite flying',\n  2: 'dappled light through clouds \u2014 forest walks, cloud watching',\n  3: 'soft overcast blanket \u2014 indoor crafting, tea brewing, reading nooks',\n  45: 'mysterious fog \u2014 lighthouse keeping, lantern lighting, fog gardens',\n  48: 'ethereal frost fog \u2014 ice crystal collecting, winter wonder',\n  51: 'gentle drizzle \u2014 puddle hopping, rain gardens, umbrella walks',\n  53: 'steady drizzle \u2014 window-side journaling, soup making',\n  55: 'cozy rain \u2014 rainy day bookshop, indoor market',\n  61: 'light rain \u2014 greenhouse tending, rainy caf\u00e9',\n  63: 'steady rainfall \u2014 canal boat life, rain painting',\n  65: 'heavy rain \u2014 storm watching from a cabin, waterfall sounds',\n  71: 'light snow \u2014 first frost foraging, snowflake catching',\n  73: 'snowy \u2014 snow globe world, cabin building',\n  75: 'heavy snow \u2014 snowed-in village, winter survival crafting',\n  80: 'passing showers \u2014 rainbow chasing, puddle reflections',\n  95: 'distant thunder \u2014 storm photography, lightning bugs'\n};\n\nif (!data || !data.current_weather) {\n  const moods = [\n    { weather: 'Gentle rain', temp: '15\u00b0C', mood: 'cozy rain \u2014 rainy day bookshop, indoor market' },\n    { weather: 'Light snow', temp: '-2\u00b0C', mood: 'light snow \u2014 first frost foraging, snowflake catching' },\n    { weather: 'Foggy', temp: '10\u00b0C', mood: 'mysterious fog \u2014 lighthouse keeping, lantern lighting, fog gardens' },\n    { weather: 'Clear sky', temp: '22\u00b0C', mood: 'sunny and warm \u2014 outdoor exploration, gardening, picnics' },\n    { weather: 'Partly cloudy', temp: '18\u00b0C', mood: 'dappled light through clouds \u2014 forest walks, cloud watching' },\n    { weather: 'Overcast', temp: '12\u00b0C', mood: 'soft overcast blanket \u2014 indoor crafting, tea brewing, reading nooks' }\n  ];\n  const pick = moods[Math.floor(Math.random() * moods.length)];\n  return [{\n    json: {\n      type: 'weather_mood',\n      weather: pick.weather,\n      temperature: pick.temp,\n      mood: pick.mood,\n      source_url: 'https://open-meteo.com/',\n      source: 'Open-Meteo (fallback)'\n    }\n  }];\n}\n\nconst w = data.current_weather;\nconst code = w.weathercode || 0;\nconst weatherDesc = weatherCodes[code] || 'Clear sky';\nconst mood = moodMap[code] || moodMap[Math.floor(code / 10) * 10] || 'calm and peaceful \u2014 a good day for quiet creation';\n\nreturn [{\n  json: {\n    type: 'weather_mood',\n    weather: weatherDesc,\n    temperature: `${w.temperature}\u00b0C`,\n    mood: mood,\n    source_url: 'https://open-meteo.com/',\n    source: 'Open-Meteo'\n  }\n}];"
+      },
+      "id": "729aa114-ddbf-4d04-9a3f-c5153b3f982c",
+      "name": "Process Weather Mood",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Wikipedia random article summary\nconst data = $input.first().json;\n\nif (!data || !data.title) {\n  return [{\n    json: {\n      type: 'wikipedia_wildcard',\n      title: 'Bioluminescence',\n      description: 'The production and emission of light by living organisms, found in many marine creatures.',\n      source_url: 'https://en.wikipedia.org/wiki/Bioluminescence',\n      source: 'Wikipedia (fallback)'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    type: 'wikipedia_wildcard',\n    title: data.title,\n    description: data.extract ? data.extract.substring(0, 300) + '...' : '',\n    source_url: data.content_urls && data.content_urls.desktop ? data.content_urls.desktop.page : 'https://en.wikipedia.org/',\n    source: 'Wikipedia'\n  }\n}];"
+      },
+      "id": "fd686b17-4028-49d0-8a3f-8b45749c0e57",
+      "name": "Process Wikipedia",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process PoetryDB random poem\nconst data = $input.first().json;\n\n// PoetryDB returns an array\nconst poems = Array.isArray(data) ? data : [data];\n\nif (!poems || poems.length === 0 || !poems[0].title) {\n  return [{\n    json: {\n      type: 'poem',\n      title: 'The Lake Isle of Innisfree',\n      author: 'W.B. Yeats',\n      lines: 'I will arise and go now, and go to Innisfree, / And a small cabin build there, of clay and wattles made...',\n      source_url: 'https://poetrydb.org/',\n      source: 'PoetryDB (fallback)'\n    }\n  }];\n}\n\nconst poem = poems[0];\nconst excerpt = poem.lines ? poem.lines.slice(0, 4).join(' / ') : '';\n\nreturn [{\n  json: {\n    type: 'poem',\n    title: poem.title,\n    author: poem.author || 'Unknown',\n    lines: excerpt,\n    source_url: 'https://poetrydb.org/',\n    source: 'PoetryDB'\n  }\n}];"
+      },
+      "id": "063d632e-9e6b-42da-8e96-706d57bf0308",
+      "name": "Process Poem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Met Museum - pick random ID and build info\nconst data = $input.first().json;\n\nif (!data || !data.objectIDs || data.objectIDs.length === 0) {\n  return [{\n    json: {\n      type: 'artwork',\n      title: 'Water Lilies',\n      artist: 'Claude Monet',\n      date: '1906',\n      medium: 'Oil on canvas',\n      image_url: '',\n      source_url: 'https://www.metmuseum.org/',\n      source: 'Metropolitan Museum (fallback)'\n    }\n  }];\n}\n\nconst ids = data.objectIDs;\nconst randomId = ids[Math.floor(Math.random() * Math.min(ids.length, 500))];\n\n// We return the object ID for reference - the actual detail fetch would need a second call\n// Instead we use the search metadata as inspiration\nreturn [{\n  json: {\n    type: 'artwork',\n    title: `Met Museum Landscape #${randomId}`,\n    artist: 'Various Artists',\n    date: '',\n    medium: 'Mixed media',\n    image_url: `https://images.metmuseum.org/CRDImages/ep/original/${randomId}.jpg`,\n    source_url: `https://www.metmuseum.org/art/collection/search/${randomId}`,\n    source: 'Metropolitan Museum of Art'\n  }\n}];"
+      },
+      "id": "56923678-7203-49fa-b5c0-bda3304eb26d",
+      "name": "Process Met Museum",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Art Institute of Chicago artwork\nconst data = $input.first().json;\n\nif (!data || !data.data || data.data.length === 0) {\n  return [{\n    json: {\n      type: 'artwork',\n      title: 'A Sunday on La Grande Jatte',\n      artist: 'Georges Seurat',\n      date: '1884-1886',\n      medium: 'Oil on canvas',\n      image_url: '',\n      source_url: 'https://www.artic.edu/',\n      source: 'Art Institute of Chicago (fallback)'\n    }\n  }];\n}\n\nconst artwork = data.data[0];\nconst imageUrl = artwork.image_id ? `https://www.artic.edu/iiif/2/${artwork.image_id}/full/400,/0/default.jpg` : '';\n\nreturn [{\n  json: {\n    type: 'artwork',\n    title: artwork.title || 'Untitled',\n    artist: artwork.artist_display || 'Unknown artist',\n    date: artwork.date_display || '',\n    medium: artwork.medium_display || '',\n    image_url: imageUrl,\n    source_url: `https://www.artic.edu/artworks/${artwork.id}`,\n    source: 'Art Institute of Chicago'\n  }\n}];"
+      },
+      "id": "fdbdb0e0-d191-4c0e-941e-80c089607704",
+      "name": "Process Art Institute",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.rijksmuseum.nl/api/en/collection?key=yXIoab0e&ps=1&p={{ Math.floor(Math.random() * 1000) + 1 }}&imgonly=true&toppieces=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSparkBot/1.0 (cozy-game-idea-generator)"
+            }
+          ]
+        },
         "options": {
           "response": {
             "response": {
               "responseFormat": "json"
             }
           }
+        }
+      },
+      "id": "5713bc6d-400a-4552-a16c-b8cbf7319868",
+      "name": "Fetch Rijksmuseum",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        2544
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://en.wikiquote.org/api.php?action=query&list=random&rnnamespace=0&rnlimit=1&format=json&origin=*",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSparkBot/1.0 (cozy-game-idea-generator)"
+            }
+          ]
         },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "8b24fa46-06e2-4e87-b412-9476d6567006",
+      "name": "Fetch Wikiquote Topic",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        2352
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/r/Miniworlds/hot.json?limit=5",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -37,26 +215,28 @@
               "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
             }
           ]
-        }
-      },
-      "id": "fetch-cozyplaces",
-      "name": "Fetch r/CozyPlaces",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [300, 100],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "method": "GET",
-        "url": "https://www.reddit.com/r/TinyHouses/hot.json?limit=5",
+        },
         "options": {
           "response": {
             "response": {
               "responseFormat": "json"
             }
           }
-        },
+        }
+      },
+      "id": "6bd6fdb2-7b18-43d1-b2c3-02bc98492569",
+      "name": "Fetch r/MiniWorlds",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        2160
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/r/Cottagecore/hot.json?limit=5",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -65,18 +245,458 @@
               "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
             }
           ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
         }
       },
-      "id": "fetch-tinyhouses",
-      "name": "Fetch r/TinyHouses",
+      "id": "ebd9ed34-d3f4-40d0-b8af-fbf8af07b254",
+      "name": "Fetch r/Cottagecore",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [300, 200],
+      "position": [
+        -640,
+        1968
+      ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "method": "GET",
+        "url": "https://www.thecolorapi.com/scheme?hex={{ Math.floor(Math.random()*16777215).toString(16).padStart(6,'0') }}&mode={{ ['analogic','complement','triad','quad'][Math.floor(Math.random()*4)] }}&count=4&format=json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSparkBot/1.0 (cozy-game-idea-generator)"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "22a012f2-26d5-46e0-b021-effae3b4c584",
+      "name": "Fetch Color Palette",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        1776
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://zenquotes.io/api/random",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "623d7c85-0121-4120-b399-06feecde2e96",
+      "name": "Fetch ZenQuote",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        1584
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ (function() { const cities = [{lat:35.68,lon:139.69,name:'Tokyo'},{lat:48.85,lon:2.35,name:'Paris'},{lat:51.50,lon:-0.12,name:'London'},{lat:-33.87,lon:151.21,name:'Sydney'},{lat:64.13,lon:-21.90,name:'Reykjavik'},{lat:1.35,lon:103.82,name:'Singapore'},{lat:55.75,lon:37.62,name:'Moscow'},{lat:-22.91,lon:-43.17,name:'Rio de Janeiro'},{lat:31.23,lon:121.47,name:'Shanghai'},{lat:19.43,lon:-99.13,name:'Mexico City'}]; const c = cities[Math.floor(Math.random()*cities.length)]; return 'https://api.open-meteo.com/v1/forecast?latitude='+c.lat+'&longitude='+c.lon+'&current_weather=true'; })() }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSparkBot/1.0 (cozy-game-idea-generator)"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "96b4cf72-6a52-4c97-911b-0e09d77b45cd",
+      "name": "Fetch Weather Mood",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        1392
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://en.wikipedia.org/api/rest_v1/page/random/summary",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ce51b7a0-9bb4-4b4f-a0e6-887c87aea546",
+      "name": "Fetch Wikipedia Random",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        1200
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://poetrydb.org/random/1",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "7bda89fa-2e79-4a53-9fc1-868eab135ee0",
+      "name": "Fetch Random Poem",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        1008
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://collectionapi.metmuseum.org/public/collection/v1/search?hasImages=true&q=landscape",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "056a2f33-a241-43e8-856f-05d52e6bf69f",
+      "name": "Fetch Met Museum IDs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        816
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://api.artic.edu/api/v1/artworks?limit=1&page={{ Math.floor(Math.random() * 5000) + 1 }}&fields=id,title,artist_display,date_display,medium_display,image_id,thumbnail",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "ca2f611b-4d82-452e-a523-06715ed61257",
+      "name": "Fetch Art Institute Chicago",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        624
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "dogukanzen@gmail.com",
+        "toEmail": "=dogukanzen@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "52edf131-419d-4c69-835f-b667c5dc0093",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1056,
+        1008
+      ],
+      "webhookId": "c2e3f3df-1d9a-40a7-a3b2-619f16c5d3c5",
+      "credentials": {
+        "smtp": {
+          "id": "R2YRCA1zlD8Vau6q",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate beautiful HTML email\nconst data = $input.first().json;\nconst ideas = data.ideas;\nconst sources = data.sources;\n\nconst date = new Date().toLocaleDateString('en-US', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\n// Convert markdown-ish formatting to HTML\nlet formattedIdeas = ideas\n  .replace(/## \ud83d\udca1/g, '<h2 class=\"idea-title\">\ud83d\udca1')\n  .replace(/## \u26a0\ufe0f/g, '<h2 class=\"warning\">\u26a0\ufe0f')\n  .replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>')\n  .replace(/\\n\\n/g, '</p><p>')\n  .replace(/\\n---\\n/g, '<hr>')\n  .replace(/\\n/g, '<br>');\n\n// Close any unclosed h2 tags\nformattedIdeas = formattedIdeas.replace(/<h2 class=\"idea-title\">\ud83d\udca1([^<]+)<br>/g, '<h2 class=\"idea-title\">\ud83d\udca1$1</h2><p>');\nformattedIdeas = formattedIdeas.replace(/<h2 class=\"warning\">\u26a0\ufe0f([^<]+)<br>/g, '<h2 class=\"warning\">\u26a0\ufe0f$1</h2><p>');\n\n// Build source links grouped by type\nconst cozy = sources.filter(s => s.type === 'cozy_aesthetic');\nconst science = sources.filter(s => s.type === 'nature_science');\nconst narrative = sources.filter(s => s.type === 'narrative_hook');\nconst mechanics = sources.filter(s => s.type === 'mechanic');\nconst jams = sources.filter(s => s.type === 'game_jam');\nconst artworks = sources.filter(s => s.type === 'artwork');\nconst poems = sources.filter(s => s.type === 'poem');\nconst weatherItems = sources.filter(s => s.type === 'weather_mood');\nconst colorItems = sources.filter(s => s.type === 'color_palette');\nconst wikiItems = sources.filter(s => s.type === 'wikipedia_wildcard');\nconst mythItems = sources.filter(s => s.type === 'mythology');\nconst quoteItems = sources.filter(s => s.type === 'quote');\n\nconst sourceSection = (title, items, emoji) => {\n  if (items.length === 0) return '';\n  const links = items\n    .filter(s => s.source_url)\n    .map(s => {\n      const label = s.title || s.mechanic || s.theme || s.source;\n      return `<li><a href=\"${s.source_url}\">${label}</a></li>`;\n    })\n    .join('');\n  return `<div class=\"source-group\"><strong>${emoji} ${title}:</strong><ul>${links}</ul></div>`;\n};\n\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Indie Spark - ${date}</title>\n  <style>\n    * { box-sizing: border-box; }\n    \n    body {\n      font-family: 'Georgia', 'Times New Roman', serif;\n      max-width: 650px;\n      margin: 0 auto;\n      padding: 20px;\n      background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);\n      color: #2d2d2d;\n      line-height: 1.7;\n    }\n    \n    .header {\n      text-align: center;\n      border-bottom: 3px solid #c9b99a;\n      padding-bottom: 25px;\n      margin-bottom: 35px;\n    }\n    \n    .header h1 {\n      color: #5d4e37;\n      margin: 0;\n      font-size: 32px;\n      letter-spacing: 1px;\n    }\n    \n    .header .tagline {\n      color: #6b8e6b;\n      font-style: italic;\n      margin-top: 8px;\n      font-size: 16px;\n    }\n    \n    .header .date {\n      color: #8b7355;\n      font-size: 14px;\n      margin-top: 12px;\n    }\n    \n    .ideas {\n      background: white;\n      border-radius: 16px;\n      padding: 30px;\n      box-shadow: 0 4px 20px rgba(93, 78, 55, 0.08);\n      border: 1px solid #e8dfd5;\n    }\n    \n    .ideas h2.idea-title {\n      color: #5d4e37;\n      font-size: 22px;\n      margin-top: 35px;\n      margin-bottom: 15px;\n      padding-bottom: 10px;\n      border-bottom: 2px solid #e8dfd5;\n    }\n    \n    .ideas h2.idea-title:first-child {\n      margin-top: 0;\n    }\n    \n    .ideas h2.warning {\n      color: #b8860b;\n    }\n    \n    .ideas p {\n      margin: 0 0 12px 0;\n    }\n    \n    .ideas strong {\n      color: #6b8e6b;\n    }\n    \n    .ideas hr {\n      border: none;\n      height: 1px;\n      background: linear-gradient(to right, transparent, #c9b99a, transparent);\n      margin: 30px 0;\n    }\n    \n    .sources {\n      margin-top: 40px;\n      padding: 25px;\n      background: linear-gradient(135deg, #f9f6f1 0%, #f0ebe3 100%);\n      border-radius: 12px;\n      border: 1px solid #e0d6c8;\n    }\n    \n    .sources h3 {\n      margin: 0 0 20px 0;\n      color: #5d4e37;\n      font-size: 18px;\n      border-bottom: 1px solid #d4c9b9;\n      padding-bottom: 10px;\n    }\n    \n    .source-group {\n      margin-bottom: 15px;\n    }\n    \n    .source-group strong {\n      color: #6b5d4d;\n      font-size: 14px;\n    }\n    \n    .sources ul {\n      margin: 8px 0 0 0;\n      padding-left: 20px;\n    }\n    \n    .sources li {\n      margin-bottom: 4px;\n      font-size: 14px;\n    }\n    \n    .sources a {\n      color: #6b8e6b;\n      text-decoration: none;\n    }\n    \n    .sources a:hover {\n      text-decoration: underline;\n    }\n    \n    .footer {\n      text-align: center;\n      margin-top: 35px;\n      padding-top: 25px;\n      border-top: 2px solid #e8dfd5;\n      color: #a99b8a;\n      font-size: 13px;\n    }\n    \n    .footer p {\n      margin: 5px 0;\n    }\n    \n    .footer .tip {\n      background: #f5f0e8;\n      padding: 12px 18px;\n      border-radius: 8px;\n      margin-top: 15px;\n      font-style: italic;\n    }\n    \n    @media (max-width: 600px) {\n      body { padding: 15px; }\n      .header h1 { font-size: 26px; }\n      .ideas { padding: 20px; }\n      .ideas h2.idea-title { font-size: 18px; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>\ud83c\udf3f Indie Spark</h1>\n    <div class=\"tagline\">Daily cozy game ideas for solo devs</div>\n    <div class=\"date\">${date}</div>\n  </div>\n\n  <div class=\"ideas\">\n    ${formattedIdeas}\n  </div>\n\n  <div class=\"sources\">\n    <h3>\ud83d\udcda Today's Inspiration Sources</h3>\n    ${sourceSection('Cozy Vibes', cozy, '\ud83c\udfe1')}\n    ${sourceSection('Artwork', artworks, '\ud83c\udfa8')}\n    ${sourceSection('Science & Nature', science, '\ud83d\udd2c')}\n    ${sourceSection('Poetry', poems, '\ud83d\udcdc')}\n    ${sourceSection('Narrative Hooks', narrative, '\ud83d\udcd6')}\n    ${sourceSection('Weather Mood', weatherItems, '\ud83c\udf24\ufe0f')}\n    ${sourceSection('Color Palette', colorItems, '\ud83c\udfa8')}\n    ${sourceSection('Wildcard Topic', wikiItems, '\ud83c\udf10')}\n    ${sourceSection('Mythology & Culture', mythItems, '\ud83c\udfdb\ufe0f')}\n    ${sourceSection('Inspirational Quote', quoteItems, '\ud83d\udcac')}\n    ${sourceSection('Game Mechanics', mechanics, '\ud83c\udfb2')}\n    ${sourceSection('Active Jams', jams, '\ud83c\udfae')}\n  </div>\n\n  <div class=\"footer\">\n    <p>Made with \u2615 by your n8n Indie Spark workflow</p>\n    <div class=\"tip\">\ud83d\udca1 Tip: Reply to this email with \u2b50 to save ideas you love!</div>\n  </div>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    html: html,\n    subject: `\ud83c\udf3f Indie Spark \u2014 ${date}`,\n    plain_text: ideas.replace(/<[^>]+>/g, ''),\n    date: date\n  }\n}];"
+      },
+      "id": "203c0262-f467-4287-8623-4975da6d72a5",
+      "name": "Build HTML Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process AI Agent response\nconst agentResponse = $input.first().json;\nconst promptData = $('Build User Prompt').first().json;\n\nlet ideas = '';\n\ntry {\n  // AI Agent returns the response in 'output' field\n  if (agentResponse.output) {\n    ideas = agentResponse.output;\n  } else if (agentResponse.text) {\n    ideas = agentResponse.text;\n  } else if (typeof agentResponse === 'string') {\n    ideas = agentResponse;\n  } else {\n    // Try to find any text content\n    ideas = JSON.stringify(agentResponse, null, 2);\n  }\n} catch (e) {\n  ideas = `## \u26a0\ufe0f Processing Error\\n\\n${e.message}\\n\\nHere are your raw ingredients to spark your own ideas:\\n\\n` + \n    promptData.raw_ingredients.map(i => `- ${i.title || i.mechanic || i.theme}`).join('\\n');\n}\n\nreturn [{\n  json: {\n    ideas: ideas,\n    sources: promptData.raw_ingredients,\n    generated_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "fe272477-caa4-4171-80b5-363700102991",
+      "name": "Process AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-pro-latest",
+        "options": {
+          "maxOutputTokens": 3000,
+          "temperature": 0.9,
+          "topP": 0.95
+        }
+      },
+      "id": "ea287cc5-6685-4ee5-897d-88a0149d8ba1",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        328,
+        1232
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "i08ls30Fy6zS49Rd",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "options": {
+          "systemMessage": "You are a creative game designer assistant for a solo indie developer who makes cozy, experimental games. Your job is to spark ideas that are achievable for one person but still feel fresh and unique.\n\nFor each game idea, use this EXACT format:\n\n## \ud83d\udca1 [NUMBER]. [CATCHY GAME NAME]\n\n**The Pitch:** [One compelling sentence that would hook a player]\n\n**Setting:** [The cozy world/location, inspired by the visual ingredients provided]\n\n**Core Loop:** [What does the player actually DO? Be specific about the main mechanic]\n\n**The Twist:** [What makes this experimental or unique? What hasn't been done before?]\n\n**Solo Dev Reality Check:** [Why is this achievable in 1-3 months for one developer?]\n\n---\n\nIMPORTANT RULES:\n1. Keep it COZY - no combat, no death, no time pressure, no stress\n2. Keep it EXPERIMENTAL - unusual perspectives, mechanics, or themes\n3. Keep it SMALL - realistic scope for a solo developer\n4. Each idea must be DISTINCTLY DIFFERENT from the others\n5. Be SPECIFIC - avoid generic descriptions like \"relaxing gameplay\"\n6. Draw from MULTIPLE ingredients - combine them in unexpected ways\n7. The game should feel like something NEW, not a clone of existing games"
+        }
+      },
+      "id": "b60c88ee-de2f-4667-b6af-4f5bc290d088",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        256,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the user prompt from all ingredients\nconst ingredients = $input.all().map(item => item.json);\n\nconst cozyItems = ingredients.filter(i => i.type === 'cozy_aesthetic');\nconst mechanics = ingredients.filter(i => i.type === 'mechanic');\nconst scienceItems = ingredients.filter(i => i.type === 'nature_science');\nconst narrativeItems = ingredients.filter(i => i.type === 'narrative_hook');\nconst jams = ingredients.filter(i => i.type === 'game_jam');\nconst artworks = ingredients.filter(i => i.type === 'artwork');\nconst poems = ingredients.filter(i => i.type === 'poem');\nconst weatherItems = ingredients.filter(i => i.type === 'weather_mood');\nconst colorItems = ingredients.filter(i => i.type === 'color_palette');\nconst wikiItems = ingredients.filter(i => i.type === 'wikipedia_wildcard');\nconst mythItems = ingredients.filter(i => i.type === 'mythology');\nconst quoteItems = ingredients.filter(i => i.type === 'quote');\n\nconst section = (emoji, title, items, formatter) => {\n  if (items.length === 0) return '';\n  return `\\n${emoji} ${title}:\\n${items.map(formatter).join('\\n')}\\n`;\n};\n\nconst userPrompt = `TODAY'S INSPIRATION INGREDIENTS:\\n` +\n  section('\ud83c\udfe1', 'COZY SETTINGS (visual inspiration)', cozyItems, c => `- \"${c.title}\" [from ${c.source}]`) +\n  section('\ud83c\udfa8', 'ARTWORK INSPIRATION', artworks, a => `- \"${a.title}\" by ${a.artist} (${a.date || 'unknown date'}) \u2014 ${a.medium || 'mixed media'} [from ${a.source}]`) +\n  section('\ud83c\udfb2', 'GAME MECHANICS TO CONSIDER', mechanics, m => `- ${m.mechanic}: ${m.description || ''}`) +\n  section('\ud83d\udd2c', 'SCIENCE/NATURE HOOK', scienceItems, s => `- ${s.title}: ${s.description || ''}`) +\n  section('\ud83d\udcda', 'NARRATIVE INSPIRATION (book titles for mood/theme)', narrativeItems, n => `- \"${n.title}\" by ${n.author}`) +\n  section('\ud83d\udcdc', 'POETRY', poems, p => `- \"${p.title}\" by ${p.author}: ${p.lines || ''}`) +\n  section('\ud83c\udf24\ufe0f', 'WEATHER MOOD (set the atmospheric tone)', weatherItems, w => `- ${w.weather} at ${w.temperature} \u2014 mood: ${w.mood}`) +\n  section('\ud83c\udfa8', 'COLOR PALETTE (use for art direction)', colorItems, c => `- ${c.palette_name}: ${(c.color_names || []).join(', ')} [${(c.colors || []).join(', ')}]`) +\n  section('\ud83c\udf10', 'WILDCARD TOPIC (unexpected inspiration)', wikiItems, w => `- ${w.title}: ${w.description || ''}`) +\n  section('\ud83c\udfdb\ufe0f', 'MYTHOLOGY / CULTURAL REFERENCE', mythItems, m => `- ${m.title}: ${m.description || ''}`) +\n  section('\ud83d\udcac', 'INSPIRATIONAL QUOTE', quoteItems, q => `- \"${q.text}\" \u2014 ${q.author}`) +\n  section('\ud83c\udfae', 'ACTIVE GAME JAMS (optional themes to consider)', jams, j => `- \"${j.title}\" - Theme: ${j.theme}`) +\n  `\\n---\\n\\nUsing these ingredients, generate EXACTLY 3 unique cozy game ideas now. Try to weave together ingredients from MULTIPLE categories into each idea \u2014 combine an artwork with a weather mood, a poem with a mechanic, etc.`;\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    raw_ingredients: ingredients\n  }\n}];"
+      },
+      "id": "f83d2cbf-4470-44d3-a36d-9768ca2a2190",
+      "name": "Build User Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 2
+      },
+      "id": "76c2b2eb-b425-4a31-94f0-792e8a986772",
+      "name": "Merge All Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -192,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate random board game mechanics\nconst mechanics = [\n  { name: 'Tile Placement', desc: 'Players place tiles to build a shared map or personal tableau' },\n  { name: 'Resource Management', desc: 'Gather and spend resources strategically' },\n  { name: 'Pattern Building', desc: 'Arrange elements to match or create patterns' },\n  { name: 'Push Your Luck', desc: 'Risk/reward decisions - keep going or stop?' },\n  { name: 'Hand Management', desc: 'Optimize a limited hand of cards or items' },\n  { name: 'Worker Placement', desc: 'Assign workers to limited action spaces' },\n  { name: 'Deck Building', desc: 'Gradually improve your deck during play' },\n  { name: 'Pick and Deliver', desc: 'Collect items and transport them to destinations' },\n  { name: 'Route Building', desc: 'Create paths or networks between points' },\n  { name: 'Set Collection', desc: 'Gather groups of matching items for bonuses' },\n  { name: 'Engine Building', desc: 'Create combos that generate increasing returns' },\n  { name: 'Area Majority', desc: 'Control regions by having the most presence' },\n  { name: 'Drafting', desc: 'Select items from a shared pool in turns' },\n  { name: 'Memory', desc: 'Remember hidden information to make better choices' },\n  { name: 'Real-Time', desc: 'Actions happen simultaneously without turns' }\n];\n\nconst shuffled = mechanics.sort(() => Math.random() - 0.5);\nconst selected = shuffled.slice(0, 3);\n\nreturn selected.map(m => ({\n  json: {\n    type: 'mechanic',\n    mechanic: m.name,\n    description: m.desc,\n    source: 'BoardGameGeek Mechanics',\n    source_url: 'https://boardgamegeek.com/browse/boardgamemechanic'\n  }\n}));"
+      },
+      "id": "ec418a43-d7ba-4894-b704-8a59aee60b99",
+      "name": "Generate Mechanics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process itch.io game jams (HTML scraping)\nconst input = $input.first().json;\nconst html = typeof input === 'string' ? input : (input.data || input.body || '');\n\nconst fallbackJams = [\n  { title: 'Cozy Jam', theme: 'Comfort and warmth', url: 'https://itch.io/jams' },\n  { title: 'Wholesome Games Jam', theme: 'Kindness and connection', url: 'https://itch.io/jams' },\n  { title: 'Lo-Fi Room Jam', theme: 'Create a cozy room scene', url: 'https://itch.io/jams' },\n  { title: 'Tiny Island Jam', theme: 'Build a small peaceful island', url: 'https://itch.io/jams' },\n  { title: 'Garden Jam', theme: 'Growing and nurturing', url: 'https://itch.io/jams' },\n  { title: 'Slow Jam', theme: 'No rush, no pressure', url: 'https://itch.io/jams' },\n  { title: 'Folklore Jam', theme: 'Myths, legends and fairy tales', url: 'https://itch.io/jams' },\n  { title: 'Bitsy Jam', theme: 'Tiny narrative worlds', url: 'https://itch.io/jams' }\n];\n\ntry {\n  if (!html || html.length < 100) throw new Error('No HTML content');\n\n  let jams = [];\n\n  // Try to extract from embedded JSON (React hydration data)\n  const jsonMatch = html.match(/InitJamIndex\\(({.*?})\\)/s) || html.match(/FilteredJamCalendar\\(({.*?})\\)/s);\n  if (jsonMatch) {\n    const parsed = JSON.parse(jsonMatch[1]);\n    if (parsed.jams && parsed.jams.length > 0) {\n      jams = parsed.jams.map(j => ({\n        title: j.title,\n        theme: j.detail || 'Open theme',\n        url: j.url ? ('https://itch.io' + j.url) : 'https://itch.io/jams',\n        joined: j.joined || 0\n      }));\n    }\n  }\n\n  // Fallback: regex scrape jam titles and links from HTML\n  if (jams.length === 0) {\n    const jamRegex = /<a[^>]+href=\"(\\/jam\\/[^\"]+)\"[^>]*>\\s*([^<]+)/gi;\n    let match;\n    const seen = new Set();\n    while ((match = jamRegex.exec(html)) !== null) {\n      const url = 'https://itch.io' + match[1].trim();\n      const title = match[2].trim();\n      if (title.length > 2 && title.length < 100 && !seen.has(url)) {\n        seen.add(url);\n        jams.push({ title, theme: 'Open theme', url, joined: 0 });\n      }\n    }\n  }\n\n  if (jams.length === 0) throw new Error('No jams parsed from HTML');\n\n  // Shuffle and pick 3\n  const shuffled = jams.sort(() => Math.random() - 0.5).slice(0, 3);\n\n  return shuffled.map(jam => ({\n    json: {\n      type: 'game_jam',\n      title: jam.title,\n      theme: jam.theme,\n      url: jam.url,\n      source: 'itch.io'\n    }\n  }));\n\n} catch (e) {\n  // Use curated fallback pool\n  const shuffled = fallbackJams.sort(() => Math.random() - 0.5).slice(0, 3);\n  return shuffled.map(jam => ({\n    json: {\n      type: 'game_jam',\n      title: jam.title,\n      theme: jam.theme,\n      url: jam.url,\n      source: 'itch.io (fallback)'\n    }\n  }));\n}"
+      },
+      "id": "be4e0d0a-ca02-443b-ac8d-d85713591218",
+      "name": "Process itch.io",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process Gutenberg books\nconst data = $input.first().json;\n\nif (!data || !data.results || data.results.length === 0) {\n  const books = [\n    { title: 'The Secret Garden', author: 'Frances Hodgson Burnett', id: 113 },\n    { title: 'Alice\\'s Adventures in Wonderland', author: 'Lewis Carroll', id: 11 },\n    { title: 'The Wind in the Willows', author: 'Kenneth Grahame', id: 289 },\n    { title: 'A Little Princess', author: 'Frances Hodgson Burnett', id: 146 },\n    { title: 'Peter Pan', author: 'J. M. Barrie', id: 16 },\n    { title: 'Anne of Green Gables', author: 'L. M. Montgomery', id: 45 },\n    { title: 'The Enchanted Castle', author: 'E. Nesbit', id: 3536 },\n    { title: 'Heidi', author: 'Johanna Spyri', id: 1448 }\n  ];\n  const shuffled = books.sort(() => Math.random() - 0.5).slice(0, 2);\n  return shuffled.map(b => ({\n    json: {\n      type: 'narrative_hook',\n      title: b.title,\n      author: b.author,\n      source_url: `https://www.gutenberg.org/ebooks/${b.id}`,\n      source: 'Gutenberg (fallback)'\n    }\n  }));\n}\n\nconst books = data.results\n  .filter(b => b.title && b.title.length < 80)\n  .sort(() => Math.random() - 0.5)\n  .slice(0, 2);\n\nreturn books.map(book => ({\n  json: {\n    type: 'narrative_hook',\n    title: book.title,\n    author: book.authors && book.authors[0] ? book.authors[0].name : 'Unknown',\n    source_url: `https://www.gutenberg.org/ebooks/${book.id}`,\n    source: 'Project Gutenberg'\n  }\n}));"
+      },
+      "id": "997d67a6-0466-4282-b80d-c683c4afec83",
+      "name": "Process Gutenberg",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process NASA APOD\nconst apod = $input.first().json;\n\nif (!apod || !apod.title) {\n  return [{\n    json: {\n      type: 'nature_science',\n      title: 'Bioluminescent plankton lighting up ocean waves',\n      description: 'Tiny organisms create magical light shows in the darkness of the sea.',\n      image_url: '',\n      source_url: 'https://apod.nasa.gov/',\n      source: 'NASA (fallback)'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    type: 'nature_science',\n    title: apod.title,\n    description: apod.explanation ? apod.explanation.substring(0, 250) + '...' : '',\n    image_url: apod.url || '',\n    source_url: 'https://apod.nasa.gov/',\n    source: 'NASA APOD'\n  }\n}];"
+      },
+      "id": "37e9e320-9bf4-4bd4-a63d-06266d8380dd",
+      "name": "Process NASA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process r/TinyHouses posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A compact treehouse studio with big windows',\n      image_url: '',\n      source_url: 'https://reddit.com/r/TinyHouses',\n      source: 'r/TinyHouses (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 2).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/TinyHouses'\n  }\n}));"
+      },
+      "id": "278b03fb-fe7a-4499-a2f7-520739643030",
+      "name": "Process TinyHouses",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process r/CozyPlaces posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A quiet reading nook by a rain-streaked window',\n      image_url: '',\n      source_url: 'https://reddit.com/r/CozyPlaces',\n      source: 'r/CozyPlaces (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 4).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/CozyPlaces'\n  }\n}));"
+      },
+      "id": "bea41f64-e692-47ab-9370-ce88ca73781c",
+      "name": "Process CozyPlaces",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -528
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://itch.io/jams",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSparkBot/1.0 (cozy-game-idea-generator)"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "df85922d-49a6-4962-87fd-f054f77f3970",
+      "name": "Fetch itch.io Jams",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        240
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://gutendex.com/books/?languages=en&page={{ Math.floor(Math.random() * 50) + 1 }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSparkBot/1.0 (cozy-game-idea-generator)"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "7d044057-4833-439c-b660-e8e2b2e54035",
+      "name": "Fetch Gutenberg Books",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -640,
+        48
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
         "url": "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY",
         "options": {
           "response": {
@@ -86,17 +706,28 @@
           }
         }
       },
-      "id": "fetch-nasa",
+      "id": "6193c4eb-45e9-4f20-945d-9dcda3483b2b",
       "name": "Fetch NASA APOD",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [300, 300],
+      "position": [
+        -640,
+        -144
+      ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://gutendex.com/books/?languages=en&page={{ Math.floor(Math.random() * 100) + 1 }}",
+        "url": "https://www.reddit.com/r/TinyHouses/hot.json?limit=5",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
+            }
+          ]
+        },
         "options": {
           "response": {
             "response": {
@@ -105,17 +736,28 @@
           }
         }
       },
-      "id": "fetch-gutenberg",
-      "name": "Fetch Gutenberg Books",
+      "id": "913c66bc-199f-4043-a41d-bbc43f41945f",
+      "name": "Fetch r/TinyHouses",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [300, 400],
+      "position": [
+        -640,
+        -336
+      ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "https://itch.io/jams/upcoming.json",
+        "url": "https://www.reddit.com/r/CozyPlaces/hot.json?limit=10",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "IndieSpark/1.0 (Game Dev Inspiration Bot)"
+            }
+          ]
+        },
         "options": {
           "response": {
             "response": {
@@ -124,313 +766,632 @@
           }
         }
       },
-      "id": "fetch-itchio",
-      "name": "Fetch itch.io Jams",
+      "id": "96f9475d-b1f3-4d53-b756-4780190b8bcf",
+      "name": "Fetch r/CozyPlaces",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [300, 500],
+      "position": [
+        -640,
+        -528
+      ],
       "continueOnFail": true
     },
     {
       "parameters": {
-        "jsCode": "// Process r/CozyPlaces posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A quiet reading nook by a rain-streaked window',\n      image_url: '',\n      source_url: 'https://reddit.com/r/CozyPlaces',\n      source: 'r/CozyPlaces (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 4).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/CozyPlaces'\n  }\n}));"
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
       },
-      "id": "process-cozyplaces",
-      "name": "Process CozyPlaces",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [550, 100]
+      "id": "3344ea40-0df0-4bd3-95b0-4a18f53f2dbd",
+      "name": "Daily 7AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -864,
+        1008
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Process r/TinyHouses posts\nconst data = $input.first().json;\n\nif (!data || !data.data || !data.data.children) {\n  return [{\n    json: {\n      type: 'cozy_aesthetic',\n      title: 'A compact treehouse studio with big windows',\n      image_url: '',\n      source_url: 'https://reddit.com/r/TinyHouses',\n      source: 'r/TinyHouses (fallback)'\n    }\n  }];\n}\n\nconst posts = data.data.children;\nreturn posts.slice(0, 2).map(post => ({\n  json: {\n    type: 'cozy_aesthetic',\n    title: post.data.title,\n    image_url: post.data.url || '',\n    source_url: `https://reddit.com${post.data.permalink}`,\n    source: 'r/TinyHouses'\n  }\n}));"
+        "numberInputs": 9
       },
-      "id": "process-tinyhouses",
-      "name": "Process TinyHouses",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [550, 200]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Process NASA APOD\nconst apod = $input.first().json;\n\nif (!apod || !apod.title) {\n  return [{\n    json: {\n      type: 'nature_science',\n      title: 'Bioluminescent plankton lighting up ocean waves',\n      description: 'Tiny organisms create magical light shows in the darkness of the sea.',\n      image_url: '',\n      source_url: 'https://apod.nasa.gov/',\n      source: 'NASA (fallback)'\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    type: 'nature_science',\n    title: apod.title,\n    description: apod.explanation ? apod.explanation.substring(0, 250) + '...' : '',\n    image_url: apod.url || '',\n    source_url: 'https://apod.nasa.gov/',\n    source: 'NASA APOD'\n  }\n}];"
-      },
-      "id": "process-nasa",
-      "name": "Process NASA",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [550, 300]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Process Gutenberg books\nconst data = $input.first().json;\n\nif (!data || !data.results || data.results.length === 0) {\n  return [{\n    json: {\n      type: 'narrative_hook',\n      title: 'The Lighthouse Keeper\\'s Daughter',\n      author: 'Anonymous',\n      source_url: 'https://www.gutenberg.org/',\n      source: 'Gutenberg (fallback)'\n    }\n  }];\n}\n\nconst books = data.results\n  .filter(b => b.title && b.title.length < 80)\n  .sort(() => Math.random() - 0.5)\n  .slice(0, 2);\n\nreturn books.map(book => ({\n  json: {\n    type: 'narrative_hook',\n    title: book.title,\n    author: book.authors && book.authors[0] ? book.authors[0].name : 'Unknown',\n    source_url: `https://www.gutenberg.org/ebooks/${book.id}`,\n    source: 'Project Gutenberg'\n  }\n}));"
-      },
-      "id": "process-gutenberg",
-      "name": "Process Gutenberg",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [550, 400]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Process itch.io game jams\nconst data = $input.first().json;\n\nif (!data || !data.jams || data.jams.length === 0) {\n  return [{\n    json: {\n      type: 'game_jam',\n      title: 'Cozy Jam 2025',\n      theme: 'Comfort',\n      url: 'https://itch.io/jams',\n      source: 'itch.io (fallback)'\n    }\n  }];\n}\n\nconst jams = data.jams.slice(0, 3);\n\nreturn jams.map(jam => ({\n  json: {\n    type: 'game_jam',\n    title: jam.title || 'Unnamed Jam',\n    theme: jam.theme || 'Open theme',\n    url: jam.url || 'https://itch.io/jams',\n    source: 'itch.io'\n  }\n}));"
-      },
-      "id": "process-itchio",
-      "name": "Process itch.io",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [550, 500]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Generate random board game mechanics\nconst mechanics = [\n  { name: 'Tile Placement', desc: 'Players place tiles to build a shared map or personal tableau' },\n  { name: 'Resource Management', desc: 'Gather and spend resources strategically' },\n  { name: 'Pattern Building', desc: 'Arrange elements to match or create patterns' },\n  { name: 'Push Your Luck', desc: 'Risk/reward decisions - keep going or stop?' },\n  { name: 'Hand Management', desc: 'Optimize a limited hand of cards or items' },\n  { name: 'Worker Placement', desc: 'Assign workers to limited action spaces' },\n  { name: 'Deck Building', desc: 'Gradually improve your deck during play' },\n  { name: 'Pick and Deliver', desc: 'Collect items and transport them to destinations' },\n  { name: 'Route Building', desc: 'Create paths or networks between points' },\n  { name: 'Set Collection', desc: 'Gather groups of matching items for bonuses' },\n  { name: 'Engine Building', desc: 'Create combos that generate increasing returns' },\n  { name: 'Area Majority', desc: 'Control regions by having the most presence' },\n  { name: 'Drafting', desc: 'Select items from a shared pool in turns' },\n  { name: 'Memory', desc: 'Remember hidden information to make better choices' },\n  { name: 'Real-Time', desc: 'Actions happen simultaneously without turns' }\n];\n\nconst shuffled = mechanics.sort(() => Math.random() - 0.5);\nconst selected = shuffled.slice(0, 3);\n\nreturn selected.map(m => ({\n  json: {\n    type: 'mechanic',\n    mechanic: m.name,\n    description: m.desc,\n    source: 'BoardGameGeek Mechanics',\n    source_url: 'https://boardgamegeek.com/browse/boardgamemechanic'\n  }\n}));"
-      },
-      "id": "generate-mechanics",
-      "name": "Generate Mechanics",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [550, 600]
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineAll",
-        "options": {}
-      },
-      "id": "merge-all",
-      "name": "Merge All Data",
+      "id": "4b426873-9c31-4645-bb58-2e0bd7c1399a",
+      "name": "Merge Group A",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [850, 350]
+      "position": [
+        -300,
+        0
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Build the user prompt from all ingredients\nconst ingredients = $input.all().map(item => item.json);\n\nconst cozyItems = ingredients.filter(i => i.type === 'cozy_aesthetic');\nconst mechanics = ingredients.filter(i => i.type === 'mechanic');\nconst scienceItems = ingredients.filter(i => i.type === 'nature_science');\nconst narrativeItems = ingredients.filter(i => i.type === 'narrative_hook');\nconst jams = ingredients.filter(i => i.type === 'game_jam');\n\nconst userPrompt = `TODAY'S INSPIRATION INGREDIENTS:\n\n🏡 COZY SETTINGS (visual inspiration):\n${cozyItems.map(c => `- \"${c.title}\" [from ${c.source}]`).join('\\n')}\n\n🎲 GAME MECHANICS TO CONSIDER:\n${mechanics.map(m => `- ${m.mechanic}: ${m.description || ''}`).join('\\n')}\n\n🔬 SCIENCE/NATURE HOOK:\n${scienceItems.map(s => `- ${s.title}: ${s.description || ''}`).join('\\n')}\n\n📚 NARRATIVE INSPIRATION (book titles for mood/theme):\n${narrativeItems.map(n => `- \"${n.title}\" by ${n.author}`).join('\\n')}\n\n🎮 ACTIVE GAME JAMS (optional themes to consider):\n${jams.map(j => `- \"${j.title}\" - Theme: ${j.theme}`).join('\\n')}\n\n---\n\nUsing these ingredients, generate EXACTLY 3 unique cozy game ideas now.`;\n\nreturn [{\n  json: {\n    userPrompt: userPrompt,\n    raw_ingredients: ingredients\n  }\n}];"
+        "numberInputs": 8
       },
-      "id": "build-prompt",
-      "name": "Build User Prompt",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1100, 350]
-    },
-    {
-      "parameters": {
-        "options": {
-          "systemMessage": "You are a creative game designer assistant for a solo indie developer who makes cozy, experimental games. Your job is to spark ideas that are achievable for one person but still feel fresh and unique.\n\nFor each game idea, use this EXACT format:\n\n## 💡 [NUMBER]. [CATCHY GAME NAME]\n\n**The Pitch:** [One compelling sentence that would hook a player]\n\n**Setting:** [The cozy world/location, inspired by the visual ingredients provided]\n\n**Core Loop:** [What does the player actually DO? Be specific about the main mechanic]\n\n**The Twist:** [What makes this experimental or unique? What hasn't been done before?]\n\n**Solo Dev Reality Check:** [Why is this achievable in 1-3 months for one developer?]\n\n---\n\nIMPORTANT RULES:\n1. Keep it COZY - no combat, no death, no time pressure, no stress\n2. Keep it EXPERIMENTAL - unusual perspectives, mechanics, or themes\n3. Keep it SMALL - realistic scope for a solo developer\n4. Each idea must be DISTINCTLY DIFFERENT from the others\n5. Be SPECIFIC - avoid generic descriptions like \"relaxing gameplay\"\n6. Draw from MULTIPLE ingredients - combine them in unexpected ways\n7. The game should feel like something NEW, not a clone of existing games"
-        },
-        "promptType": "define",
-        "text": "={{ $json.userPrompt }}"
-      },
-      "id": "ai-agent",
-      "name": "AI Agent",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.7,
-      "position": [1350, 350]
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-1.5-flash",
-        "options": {
-          "temperature": 0.9,
-          "maxOutputTokens": 3000,
-          "topP": 0.95
-        }
-      },
-      "id": "gemini-chat-model",
-      "name": "Google Gemini Chat Model",
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [1350, 550],
-      "credentials": {
-        "googlePalmApi": {
-          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
-          "name": "Google Gemini (PaLM) API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Process AI Agent response\nconst agentResponse = $input.first().json;\nconst promptData = $('Build User Prompt').first().json;\n\nlet ideas = '';\n\ntry {\n  // AI Agent returns the response in 'output' field\n  if (agentResponse.output) {\n    ideas = agentResponse.output;\n  } else if (agentResponse.text) {\n    ideas = agentResponse.text;\n  } else if (typeof agentResponse === 'string') {\n    ideas = agentResponse;\n  } else {\n    // Try to find any text content\n    ideas = JSON.stringify(agentResponse, null, 2);\n  }\n} catch (e) {\n  ideas = `## ⚠️ Processing Error\\n\\n${e.message}\\n\\nHere are your raw ingredients to spark your own ideas:\\n\\n` + \n    promptData.raw_ingredients.map(i => `- ${i.title || i.mechanic || i.theme}`).join('\\n');\n}\n\nreturn [{\n  json: {\n    ideas: ideas,\n    sources: promptData.raw_ingredients,\n    generated_at: new Date().toISOString()\n  }\n}];"
-      },
-      "id": "process-response",
-      "name": "Process AI Response",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1600, 350]
-    },
-    {
-      "parameters": {
-        "jsCode": "// Generate beautiful HTML email\nconst data = $input.first().json;\nconst ideas = data.ideas;\nconst sources = data.sources;\n\nconst date = new Date().toLocaleDateString('en-US', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\n// Convert markdown-ish formatting to HTML\nlet formattedIdeas = ideas\n  .replace(/## 💡/g, '<h2 class=\"idea-title\">💡')\n  .replace(/## ⚠️/g, '<h2 class=\"warning\">⚠️')\n  .replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>')\n  .replace(/\\n\\n/g, '</p><p>')\n  .replace(/\\n---\\n/g, '<hr>')\n  .replace(/\\n/g, '<br>');\n\n// Close any unclosed h2 tags\nformattedIdeas = formattedIdeas.replace(/<h2 class=\"idea-title\">💡([^<]+)<br>/g, '<h2 class=\"idea-title\">💡$1</h2><p>');\nformattedIdeas = formattedIdeas.replace(/<h2 class=\"warning\">⚠️([^<]+)<br>/g, '<h2 class=\"warning\">⚠️$1</h2><p>');\n\n// Build source links grouped by type\nconst cozy = sources.filter(s => s.type === 'cozy_aesthetic');\nconst science = sources.filter(s => s.type === 'nature_science');\nconst narrative = sources.filter(s => s.type === 'narrative_hook');\nconst mechanics = sources.filter(s => s.type === 'mechanic');\nconst jams = sources.filter(s => s.type === 'game_jam');\n\nconst sourceSection = (title, items, emoji) => {\n  if (items.length === 0) return '';\n  const links = items\n    .filter(s => s.source_url)\n    .map(s => {\n      const label = s.title || s.mechanic || s.theme || s.source;\n      return `<li><a href=\"${s.source_url}\">${label}</a></li>`;\n    })\n    .join('');\n  return `<div class=\"source-group\"><strong>${emoji} ${title}:</strong><ul>${links}</ul></div>`;\n};\n\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Indie Spark - ${date}</title>\n  <style>\n    * { box-sizing: border-box; }\n    \n    body {\n      font-family: 'Georgia', 'Times New Roman', serif;\n      max-width: 650px;\n      margin: 0 auto;\n      padding: 20px;\n      background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);\n      color: #2d2d2d;\n      line-height: 1.7;\n    }\n    \n    .header {\n      text-align: center;\n      border-bottom: 3px solid #c9b99a;\n      padding-bottom: 25px;\n      margin-bottom: 35px;\n    }\n    \n    .header h1 {\n      color: #5d4e37;\n      margin: 0;\n      font-size: 32px;\n      letter-spacing: 1px;\n    }\n    \n    .header .tagline {\n      color: #6b8e6b;\n      font-style: italic;\n      margin-top: 8px;\n      font-size: 16px;\n    }\n    \n    .header .date {\n      color: #8b7355;\n      font-size: 14px;\n      margin-top: 12px;\n    }\n    \n    .ideas {\n      background: white;\n      border-radius: 16px;\n      padding: 30px;\n      box-shadow: 0 4px 20px rgba(93, 78, 55, 0.08);\n      border: 1px solid #e8dfd5;\n    }\n    \n    .ideas h2.idea-title {\n      color: #5d4e37;\n      font-size: 22px;\n      margin-top: 35px;\n      margin-bottom: 15px;\n      padding-bottom: 10px;\n      border-bottom: 2px solid #e8dfd5;\n    }\n    \n    .ideas h2.idea-title:first-child {\n      margin-top: 0;\n    }\n    \n    .ideas h2.warning {\n      color: #b8860b;\n    }\n    \n    .ideas p {\n      margin: 0 0 12px 0;\n    }\n    \n    .ideas strong {\n      color: #6b8e6b;\n    }\n    \n    .ideas hr {\n      border: none;\n      height: 1px;\n      background: linear-gradient(to right, transparent, #c9b99a, transparent);\n      margin: 30px 0;\n    }\n    \n    .sources {\n      margin-top: 40px;\n      padding: 25px;\n      background: linear-gradient(135deg, #f9f6f1 0%, #f0ebe3 100%);\n      border-radius: 12px;\n      border: 1px solid #e0d6c8;\n    }\n    \n    .sources h3 {\n      margin: 0 0 20px 0;\n      color: #5d4e37;\n      font-size: 18px;\n      border-bottom: 1px solid #d4c9b9;\n      padding-bottom: 10px;\n    }\n    \n    .source-group {\n      margin-bottom: 15px;\n    }\n    \n    .source-group strong {\n      color: #6b5d4d;\n      font-size: 14px;\n    }\n    \n    .sources ul {\n      margin: 8px 0 0 0;\n      padding-left: 20px;\n    }\n    \n    .sources li {\n      margin-bottom: 4px;\n      font-size: 14px;\n    }\n    \n    .sources a {\n      color: #6b8e6b;\n      text-decoration: none;\n    }\n    \n    .sources a:hover {\n      text-decoration: underline;\n    }\n    \n    .footer {\n      text-align: center;\n      margin-top: 35px;\n      padding-top: 25px;\n      border-top: 2px solid #e8dfd5;\n      color: #a99b8a;\n      font-size: 13px;\n    }\n    \n    .footer p {\n      margin: 5px 0;\n    }\n    \n    .footer .tip {\n      background: #f5f0e8;\n      padding: 12px 18px;\n      border-radius: 8px;\n      margin-top: 15px;\n      font-style: italic;\n    }\n    \n    @media (max-width: 600px) {\n      body { padding: 15px; }\n      .header h1 { font-size: 26px; }\n      .ideas { padding: 20px; }\n      .ideas h2.idea-title { font-size: 18px; }\n    }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>🌿 Indie Spark</h1>\n    <div class=\"tagline\">Daily cozy game ideas for solo devs</div>\n    <div class=\"date\">${date}</div>\n  </div>\n\n  <div class=\"ideas\">\n    ${formattedIdeas}\n  </div>\n\n  <div class=\"sources\">\n    <h3>📚 Today's Inspiration Sources</h3>\n    ${sourceSection('Cozy Vibes', cozy, '🏡')}\n    ${sourceSection('Science & Nature', science, '🔬')}\n    ${sourceSection('Narrative Hooks', narrative, '📖')}\n    ${sourceSection('Game Mechanics', mechanics, '🎲')}\n    ${sourceSection('Active Jams', jams, '🎮')}\n  </div>\n\n  <div class=\"footer\">\n    <p>Made with ☕ by your n8n Indie Spark workflow</p>\n    <div class=\"tip\">💡 Tip: Reply to this email with ⭐ to save ideas you love!</div>\n  </div>\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    html: html,\n    subject: `🌿 Indie Spark — ${date}`,\n    plain_text: ideas.replace(/<[^>]+>/g, ''),\n    date: date\n  }\n}];"
-      },
-      "id": "build-email",
-      "name": "Build HTML Email",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1850, 350]
-    },
-    {
-      "parameters": {
-        "fromEmail": "={{ $env.SMTP_FROM || 'indiespark@yourdomain.com' }}",
-        "toEmail": "={{ $env.RECIPIENT_EMAIL || 'your-email@gmail.com' }}",
-        "subject": "={{ $json.subject }}",
-        "emailType": "html",
-        "html": "={{ $json.html }}",
-        "options": {
-          "appendAttribution": false
-        }
-      },
-      "id": "send-email",
-      "name": "Send Email",
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [2100, 350],
-      "credentials": {
-        "smtp": {
-          "id": "REPLACE_WITH_YOUR_SMTP_CREDENTIAL_ID",
-          "name": "SMTP"
-        }
-      }
-    },
-    {
-      "parameters": {},
-      "id": "manual-trigger",
-      "name": "Manual Test Trigger",
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [0, 500]
+      "id": "5f69c914-eb53-43a2-ad9e-c990b8e49dea",
+      "name": "Merge Group B",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -300,
+        1900
+      ]
     }
   ],
+  "pinData": {},
   "connections": {
-    "Daily 7AM Trigger": {
+    "Fetch Rijksmuseum": {
       "main": [
         [
-          { "node": "Fetch r/CozyPlaces", "type": "main", "index": 0 },
-          { "node": "Fetch r/TinyHouses", "type": "main", "index": 0 },
-          { "node": "Fetch NASA APOD", "type": "main", "index": 0 },
-          { "node": "Fetch Gutenberg Books", "type": "main", "index": 0 },
-          { "node": "Fetch itch.io Jams", "type": "main", "index": 0 },
-          { "node": "Generate Mechanics", "type": "main", "index": 0 }
+          {
+            "node": "Process Rijksmuseum",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
-    "Manual Test Trigger": {
+    "Fetch Wikiquote Topic": {
       "main": [
         [
-          { "node": "Fetch r/CozyPlaces", "type": "main", "index": 0 },
-          { "node": "Fetch r/TinyHouses", "type": "main", "index": 0 },
-          { "node": "Fetch NASA APOD", "type": "main", "index": 0 },
-          { "node": "Fetch Gutenberg Books", "type": "main", "index": 0 },
-          { "node": "Fetch itch.io Jams", "type": "main", "index": 0 },
-          { "node": "Generate Mechanics", "type": "main", "index": 0 }
+          {
+            "node": "Process Wikiquote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch r/MiniWorlds": {
+      "main": [
+        [
+          {
+            "node": "Process MiniWorlds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch r/Cottagecore": {
+      "main": [
+        [
+          {
+            "node": "Process Cottagecore",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Color Palette": {
+      "main": [
+        [
+          {
+            "node": "Process Color Palette",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch ZenQuote": {
+      "main": [
+        [
+          {
+            "node": "Process ZenQuote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Weather Mood": {
+      "main": [
+        [
+          {
+            "node": "Process Weather Mood",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Wikipedia Random": {
+      "main": [
+        [
+          {
+            "node": "Process Wikipedia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Random Poem": {
+      "main": [
+        [
+          {
+            "node": "Process Poem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Met Museum IDs": {
+      "main": [
+        [
+          {
+            "node": "Process Met Museum",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Art Institute Chicago": {
+      "main": [
+        [
+          {
+            "node": "Process Art Institute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Rijksmuseum": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "Process Wikiquote": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "Process MiniWorlds": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Process Cottagecore": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Process Color Palette": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Process ZenQuote": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Process Weather Mood": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Process Wikipedia": {
+      "main": [
+        [
+          {
+            "node": "Merge Group B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Poem": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 8
+          }
+        ]
+      ]
+    },
+    "Process Met Museum": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 7
+          }
+        ]
+      ]
+    },
+    "Process Art Institute": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "Build HTML Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Response": {
+      "main": [
+        [
+          {
+            "node": "Build HTML Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Process AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build User Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Build User Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Mechanics": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Process itch.io": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Process Gutenberg": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Process NASA": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Process TinyHouses": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Process CozyPlaces": {
+      "main": [
+        [
+          {
+            "node": "Merge Group A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch itch.io Jams": {
+      "main": [
+        [
+          {
+            "node": "Process itch.io",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Gutenberg Books": {
+      "main": [
+        [
+          {
+            "node": "Process Gutenberg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch NASA APOD": {
+      "main": [
+        [
+          {
+            "node": "Process NASA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch r/TinyHouses": {
+      "main": [
+        [
+          {
+            "node": "Process TinyHouses",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
     "Fetch r/CozyPlaces": {
       "main": [
-        [{ "node": "Process CozyPlaces", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Process CozyPlaces",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Fetch r/TinyHouses": {
+    "Daily 7AM Trigger": {
       "main": [
-        [{ "node": "Process TinyHouses", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Fetch r/CozyPlaces",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch r/TinyHouses",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch NASA APOD",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Gutenberg Books",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch itch.io Jams",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Mechanics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Art Institute Chicago",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Met Museum IDs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Random Poem",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Wikipedia Random",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Weather Mood",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch ZenQuote",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Color Palette",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch r/Cottagecore",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch r/MiniWorlds",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Wikiquote Topic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Rijksmuseum",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Fetch NASA APOD": {
+    "Merge Group A": {
       "main": [
-        [{ "node": "Process NASA", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Fetch Gutenberg Books": {
+    "Merge Group B": {
       "main": [
-        [{ "node": "Process Gutenberg", "type": "main", "index": 0 }]
-      ]
-    },
-    "Fetch itch.io Jams": {
-      "main": [
-        [{ "node": "Process itch.io", "type": "main", "index": 0 }]
-      ]
-    },
-    "Process CozyPlaces": {
-      "main": [
-        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
-      ]
-    },
-    "Process TinyHouses": {
-      "main": [
-        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
-      ]
-    },
-    "Process NASA": {
-      "main": [
-        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
-      ]
-    },
-    "Process Gutenberg": {
-      "main": [
-        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
-      ]
-    },
-    "Process itch.io": {
-      "main": [
-        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
-      ]
-    },
-    "Generate Mechanics": {
-      "main": [
-        [{ "node": "Merge All Data", "type": "main", "index": 0 }]
-      ]
-    },
-    "Merge All Data": {
-      "main": [
-        [{ "node": "Build User Prompt", "type": "main", "index": 0 }]
-      ]
-    },
-    "Build User Prompt": {
-      "main": [
-        [{ "node": "AI Agent", "type": "main", "index": 0 }]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [{ "node": "Process AI Response", "type": "main", "index": 0 }]
-      ]
-    },
-    "Google Gemini Chat Model": {
-      "ai_languageModel": [
-        [{ "node": "AI Agent", "type": "ai_languageModel", "index": 0 }]
-      ]
-    },
-    "Process AI Response": {
-      "main": [
-        [{ "node": "Build HTML Email", "type": "main", "index": 0 }]
-      ]
-    },
-    "Build HTML Email": {
-      "main": [
-        [{ "node": "Send Email", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
       ]
     }
   },
+  "active": true,
   "settings": {
     "executionOrder": "v1",
-    "saveManualExecutions": true,
-    "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": ""
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
   },
-  "staticData": null,
+  "versionId": "bc8348c6-33b4-45ed-8eda-6dabb99300da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "609e9500882fc46b174e6c64ac33343c9a3952b80de7721ebb895e64c38046f7"
+  },
+  "id": "dPSp9QT6lBgi8-NBR5HwO",
   "tags": [
     {
-      "name": "game-dev",
-      "createdAt": "2025-01-31T00:00:00.000Z",
-      "updatedAt": "2025-01-31T00:00:00.000Z"
+      "updatedAt": "2026-01-31T13:52:43.087Z",
+      "createdAt": "2026-01-31T13:52:43.087Z",
+      "id": "SD5JyBfGIAOfZ5lH",
+      "name": "game-dev"
     },
     {
-      "name": "ai-agent",
-      "createdAt": "2025-01-31T00:00:00.000Z",
-      "updatedAt": "2025-01-31T00:00:00.000Z"
+      "updatedAt": "2026-01-31T14:03:38.899Z",
+      "createdAt": "2026-01-31T14:03:38.899Z",
+      "id": "bAShYtG43OGa4oLx",
+      "name": "ai-agent"
     }
-  ],
-  "triggerCount": 2,
-  "pinData": {},
-  "versionId": "2"
+  ]
 }

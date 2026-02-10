@@ -14,22 +14,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 The workflow runs daily at 7 AM and follows this pipeline:
 
 ```
-Schedule Trigger → 6 Parallel Data Fetchers → Merge All → Build Prompt → Gemini 1.5 Flash AI Agent → Process Response → Build HTML Email → Send via SMTP
+Schedule Trigger → 17 Parallel Data Fetchers → Merge All → Build Prompt → Gemini 1.5 Flash AI Agent → Process Response → Build HTML Email → Send via SMTP
 ```
 
 **Data sources** (fetched in parallel with `continueOnFail: true` and hardcoded fallbacks):
-- Reddit (r/CozyPlaces, r/TinyHouses) — cozy aesthetic inspiration
+- Reddit (r/CozyPlaces, r/TinyHouses, r/Cottagecore, r/MiniWorlds) — cozy aesthetic inspiration
 - NASA APOD — science/nature hooks
 - Project Gutenberg — narrative inspiration from random books
 - Itch.io Game Jams — active jam themes
 - Hardcoded board game mechanics list (15 mechanics, 3 randomly selected)
+- Art Institute of Chicago API — random artwork for visual inspiration (no auth)
+- Metropolitan Museum of Art API — landscape artworks (no auth)
+- PoetryDB — random poem for atmospheric/thematic seeds (no auth)
+- Wikipedia Random Article — wildcard topic for unusual mechanic inspiration (no auth)
+- Open-Meteo Weather API — weather from a random world city as mood-setter (no auth)
+- ZenQuotes — inspirational quote for thematic seeds (no auth)
+- The Color API — random color palette for art direction constraint (no auth)
+- Wikiquote — random cultural/mythology topic (no auth)
+- Rijksmuseum API — Dutch golden age artwork (requires free API key)
 
 **AI configuration:** Gemini 1.5 Flash, temperature 0.9, 3000 max tokens, via LangChain AI Agent node.
 
 ## Key Technical Details
 
 - All processing logic lives in n8n **Code nodes** (JavaScript/Node.js runtime)
-- The workflow JSON contains 24 nodes total with embedded JavaScript in `jsCode` fields
+- The workflow JSON contains 46 nodes total with embedded JavaScript in `jsCode` fields
 - Node IDs follow the pattern `fetch-*`, `process-*`, `build-*`, `merge-*`, `send-*`
 - Error resilience: every HTTP node has `continueOnFail: true` with fallback data in corresponding process nodes
 - Email output uses inline-styled HTML with Georgia serif font and a warm brown/green color palette
@@ -56,3 +65,4 @@ Game ideas generated must follow these rules (enforced via the AI system prompt)
 - Gemini API key (HTTP Header Auth)
 - SMTP credentials (host, port, user, password)
 - Optional: Reddit API for higher rate limits
+- Optional: Rijksmuseum API key (free, register at rijksmuseum.nl/en/rijksstudio) — replace `REPLACE_WITH_RIJKS_API_KEY` in the fetch node URL
